@@ -1,0 +1,22 @@
+---RgbLcdKeyShieldI2C.h (4036 bytes of flash written)
+
+Wire bus at at 400 kHz
+
+14 characters in 1728 us = 8101 char/s
+1 characters in 192 us = 5208 char/s
+
+
+------RgbLcdKeyShield.h	(4818 bytes of flash written)
+
+Wire bus at at 400 kHz
+
+14 characters in 2196 us = 6375 char/s
+1 characters in 224 us = 4464 char/s
+
+
+Adafruit_RGBLCDShield.h	(6020 bytes of flash written)
+
+Wire bus at at 400 kHz
+
+14 characters in 29172 us = 479 char/s
+1 characters in 2092 us = 478 char/s
