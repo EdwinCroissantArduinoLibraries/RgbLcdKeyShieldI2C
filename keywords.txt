@@ -37,8 +37,8 @@ createCharP	KEYWORD2
 write KEYWORD2
 writeP KEYWORD2
 printP KEYWORD2
-
-read	KEYWORD2
+read KEYWORD2
+getCursor KEYWORD2
 clear	KEYWORD2
 isPressed	KEYWORD2
 onShortPress	KEYWORD2

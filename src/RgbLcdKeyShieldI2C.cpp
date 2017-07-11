@@ -464,6 +464,41 @@ size_t RgbLcdKeyShieldI2C::write(uint8_t c) {
 }
 
 /*
+ * Reads a character from the screen
+ */
+uint8_t RgbLcdKeyShieldI2C::read() {
+	uint8_t value;
+	_prepareRead(false);
+	value =  _lcdRead8();
+	_cleanupRead();
+	return value;
+}
+
+/*
+ * Reads multiple characters from the screen into a buffer
+ */
+size_t RgbLcdKeyShieldI2C::read(uint8_t* buffer, size_t size) {
+	size_t n = 0;
+	_prepareRead(false);
+	while (n < size) {
+		buffer[n++] = _lcdRead8();
+	}
+	_cleanupRead();
+	return n;
+}
+
+/*
+ * Read the cursor position
+ */
+uint8_t RgbLcdKeyShieldI2C::getCursor() {
+	uint8_t value;
+	_prepareRead(true);
+	value = _lcdRead8();
+	_cleanupRead();
+	return value;
+}
+
+/*
  * Overrides the standard implementation
  */
 size_t RgbLcdKeyShieldI2C::write(const uint8_t* buffer, size_t size) {
@@ -531,9 +566,8 @@ void RgbLcdKeyShieldI2C::_lcdWrite4(uint8_t value, bool lcdInstruction) {
 /*
  * Helper function to write a byte to the display
  */
-void RgbLcdKeyShieldI2C::_lcdWrite8(uint8_t value, bool lcdInstruction) {
-	uint8_t temp = value;
-	_lcdWrite4(temp >> 4, lcdInstruction);
+inline void RgbLcdKeyShieldI2C::_lcdWrite8(uint8_t value, bool lcdInstruction) {
+	_lcdWrite4(value >> 4, lcdInstruction);
 	_lcdWrite4(value, lcdInstruction);
 }
 
@@ -548,3 +582,62 @@ void RgbLcdKeyShieldI2C::_lcdTransmit(uint8_t value, bool lcdInstruction) {
 	I2c.stop();
 }
 
+/*
+ * Helper function to prepare for a read
+ */
+void RgbLcdKeyShieldI2C::_prepareRead(bool lcdInstruction) {
+	// set lcd data pins of GPIOB as input
+	I2c.write(I2Caddr, IODIRB, B00011110);
+	I2c.start();
+	I2c.sendAddress(SLA_W(I2Caddr));
+	I2c.sendByte(GPIOB);
+	// clear the lcd bits of shadowB
+	_shadowGPIOB &= B00000001;
+	if (lcdInstruction)	// set R/W high
+		_shadowGPIOB |= B01000000;
+	else // set RS, and R/W high
+		_shadowGPIOB |= B11000000;
+	I2c.sendByte(_shadowGPIOB);
+}
+
+/*
+ * Helper function to read a nibble from the display
+ */
+uint8_t RgbLcdKeyShieldI2C::_lcdRead4() {
+	uint8_t value = 0;
+	uint8_t temp;
+	// set enable high
+	_shadowGPIOB |= B00100000;
+	I2c.sendByte(_shadowGPIOB);
+	I2c.stop();
+	I2c.read(I2Caddr, GPIOB, 1);
+	temp = I2c.receive();
+	// clear enable
+	_shadowGPIOB &= B11000001;
+	I2c.start();
+	I2c.sendAddress(SLA_W(I2Caddr));
+	I2c.sendByte(GPIOB);
+	I2c.sendByte(_shadowGPIOB);
+	// translate pin to nibble
+	bitWrite(value, 0, bitRead(temp, 4));
+	bitWrite(value, 1, bitRead(temp, 3));
+	bitWrite(value, 2, bitRead(temp, 2));
+	bitWrite(value, 3, bitRead(temp, 1));
+	return value;
+}
+
+/*
+ * Helper function to read a byte from the display
+ */
+inline uint8_t RgbLcdKeyShieldI2C::_lcdRead8() {
+	return (_lcdRead4() << 4) + _lcdRead4();
+}
+
+/*
+ * Helper function to cleanup after read
+ */
+inline void RgbLcdKeyShieldI2C::_cleanupRead() {
+	I2c.stop();
+	// set all pins back as output
+	I2c.write(I2Caddr, IODIRB, B00000000);
+}

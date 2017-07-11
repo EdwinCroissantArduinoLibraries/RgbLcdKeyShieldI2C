@@ -23,6 +23,7 @@
  */
 /*
  * version
+ * 0.0.2	2017/07/11 introduced read and getCursor for the lcd
  * 0.0.1	2017/07/04 initial version
  */
 
@@ -108,6 +109,10 @@ public:
 #endif // __AVR__
 	virtual size_t write(uint8_t c);
 	size_t write(const uint8_t *buffer, size_t size) override;
+	uint8_t read();
+	size_t read(uint8_t *buffer, size_t size);
+	uint8_t getCursor();
+
 	void readKeys();
 	void clearKeys();
 	SimpleKeyHandler keyLeft;
@@ -167,8 +172,12 @@ private:
 	static const uint8_t _nibbleToPin[16];
 
 	void _lcdWrite4(uint8_t value, bool lcdInstruction);
-	void _lcdWrite8(uint8_t value, bool lcdInstruction);
+	inline void _lcdWrite8(uint8_t value, bool lcdInstruction);
 	void _lcdTransmit(uint8_t value, bool lcdInstruction);
+	void _prepareRead(bool lcdInstruction);
+	uint8_t _lcdRead4();
+	inline uint8_t _lcdRead8();
+	inline void _cleanupRead();
 };
 
 
