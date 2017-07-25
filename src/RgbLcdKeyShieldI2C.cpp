@@ -41,15 +41,15 @@ SimpleKeyHandler::SimpleKeyHandler() {
 	_previousState = keyOff;
 	_allowEvents = false;
 }
+
 /*
- * Clears all the callback pointers;
+ * Clears all the callback pointers of the key (not onTwopress).
  */
 void SimpleKeyHandler::clear() {
 	onShortPress = nullptr;
 	onLongPress = nullptr;
 	onRepPress = nullptr;
 	onRepPressCount = nullptr;
-	onTwoPress = nullptr;
 }
 
 /*

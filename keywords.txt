@@ -39,7 +39,8 @@ writeP KEYWORD2
 printP KEYWORD2
 read KEYWORD2
 getCursor KEYWORD2
-clear	KEYWORD2
+readKeys KEYWORD2
+clearKeys	KEYWORD2
 isPressed	KEYWORD2
 onShortPress	KEYWORD2
 onLongPress	KEYWORD2
