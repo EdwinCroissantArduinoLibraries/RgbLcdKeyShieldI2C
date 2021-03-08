@@ -179,17 +179,18 @@ bool SimpleKeyHandler::isPressed() {
 			B10111110	// 1111
 			};
 
-RgbLcdKeyShieldI2C::RgbLcdKeyShieldI2C() {
+RgbLcdKeyShieldI2C::RgbLcdKeyShieldI2C(bool invertedBacklight) {
 	_shadowGPIOA = B11000000; // set bit 6 (red led) and 7 (green led) high
 	_shadowGPIOB = B00100001; // set bit 0 (blue led) and 5 (lcd enable) high
 	_shadowDisplayControl = displayControl | displayOnFlag; // set on, no cursor and no blinking
 	_shadowEntryModeSet = entryModeSet | left2RightFlag; // left to right, no shift
+	_invertedBacklight = invertedBacklight;
 }
 
 /*
  * initialize the MCP23017 and the LCD
  */
-void RgbLcdKeyShieldI2C::begin(void) {
+void RgbLcdKeyShieldI2C::begin() {
 	// give the lcd some time to get ready
 	delay(100);
 	/*
@@ -221,9 +222,9 @@ void RgbLcdKeyShieldI2C::begin(void) {
 	 * Hitachi HD44780 LCD controller entry
 	 */
 
-	I2c.start();
-	I2c.sendAddress(SLA_W(I2Caddr));
-	I2c.sendByte(GPIOB);
+	I2c._start();
+	I2c._sendAddress(SLA_W(I2Caddr));
+	I2c._sendByte(GPIOB);
 	_lcdWrite4(B0011, true);
 	delay(5);
 	_lcdWrite4(B0011, true);
@@ -236,7 +237,7 @@ void RgbLcdKeyShieldI2C::begin(void) {
 	_lcdWrite8(_shadowDisplayControl, true);
 	// left to right, no shift
 	_lcdWrite8(_shadowEntryModeSet, true);
-	I2c.stop();
+	I2c._stop();
 
 	// Clear entire display
 	clear();
@@ -277,9 +278,11 @@ void RgbLcdKeyShieldI2C::setCursor(uint8_t col, uint8_t row) {
  * Sets the color of the backlight of the display.
  */
 void RgbLcdKeyShieldI2C::setColor(colors color) {
-	bitWrite(_shadowGPIOA, 6, !(color & clRed));
-	bitWrite(_shadowGPIOA, 7, !(color & clGreen));
-	bitWrite(_shadowGPIOB, 0, !(color & clBlue));
+	uint8_t _color;
+	_invertedBacklight ? _color =~ color : _color = color;
+	bitWrite(_shadowGPIOA, 6, !(_color & clRed));
+	bitWrite(_shadowGPIOA, 7, !(_color & clGreen));
+	bitWrite(_shadowGPIOB, 0, !(_color & clBlue));
 	I2c.write(I2Caddr, GPIOA, _shadowGPIOA);
 	I2c.write(I2Caddr, GPIOB, _shadowGPIOB);
 }
@@ -427,14 +430,14 @@ void RgbLcdKeyShieldI2C::createCharP(uint8_t location, const uint8_t *charmap) {
 size_t RgbLcdKeyShieldI2C::printP(const char str[]) {
 	size_t n = 0;
 	char c = pgm_read_byte(&str[n]);
-	I2c.start();
-	I2c.sendAddress(SLA_W(I2Caddr));
-	I2c.sendByte(GPIOB);
+	I2c._start();
+	I2c._sendAddress(SLA_W(I2Caddr));
+	I2c._sendByte(GPIOB);
 	while (c) {
 		_lcdWrite8(c, false);
 		c = pgm_read_byte(&str[++n]);
 	};
-	I2c.stop();
+	I2c._stop();
 	return n;
 }
 
@@ -444,13 +447,13 @@ size_t RgbLcdKeyShieldI2C::printP(const char str[]) {
  */
 size_t RgbLcdKeyShieldI2C::writeP(const uint8_t* buffer, size_t size) {
 	size_t n = 0;
-	I2c.start();
-	I2c.sendAddress(SLA_W(I2Caddr));
-	I2c.sendByte(GPIOB);
+	I2c._start();
+	I2c._sendAddress(SLA_W(I2Caddr));
+	I2c._sendByte(GPIOB);
 	while (n < size) {
 		_lcdWrite8(pgm_read_byte(&buffer[n++]), false);
 	};
-	I2c.stop();
+	I2c._stop();
 	return n;
 }
 #endif // __AVR__
@@ -503,13 +506,13 @@ uint8_t RgbLcdKeyShieldI2C::getCursor() {
  */
 size_t RgbLcdKeyShieldI2C::write(const uint8_t* buffer, size_t size) {
 	size_t n = 0;
-	I2c.start();
-	I2c.sendAddress(SLA_W(I2Caddr));
-	I2c.sendByte(GPIOB);
+	I2c._start();
+	I2c._sendAddress(SLA_W(I2Caddr));
+	I2c._sendByte(GPIOB);
 	while (n < size) {
 		_lcdWrite8(buffer[n++], false);
 	}
-	I2c.stop();
+	I2c._stop();
 	return n;
 }
 
@@ -556,11 +559,11 @@ void RgbLcdKeyShieldI2C::_lcdWrite4(uint8_t value, bool lcdInstruction) {
 	if (lcdInstruction)
 		_shadowGPIOB &= B01111111;
 	// send the data
-	I2c.sendByte(_shadowGPIOB);
+	I2c._sendByte(_shadowGPIOB);
 	// Toggle the enable bit
 	_shadowGPIOB ^= B00100000;
 	// and send again
-	I2c.sendByte(_shadowGPIOB);
+	I2c._sendByte(_shadowGPIOB);
 }
 
 /*
@@ -575,11 +578,11 @@ inline void RgbLcdKeyShieldI2C::_lcdWrite8(uint8_t value, bool lcdInstruction) {
  * Helper function to transmit a byte to the display
  */
 void RgbLcdKeyShieldI2C::_lcdTransmit(uint8_t value, bool lcdInstruction) {
-	I2c.start();
-	I2c.sendAddress(SLA_W(I2Caddr));
-	I2c.sendByte(GPIOB);
+	I2c._start();
+	I2c._sendAddress(SLA_W(I2Caddr));
+	I2c._sendByte(GPIOB);
 	_lcdWrite8(value, lcdInstruction);
-	I2c.stop();
+	I2c._stop();
 }
 
 /*
@@ -588,16 +591,16 @@ void RgbLcdKeyShieldI2C::_lcdTransmit(uint8_t value, bool lcdInstruction) {
 void RgbLcdKeyShieldI2C::_prepareRead(bool lcdInstruction) {
 	// set lcd data pins of GPIOB as input
 	I2c.write(I2Caddr, IODIRB, B00011110);
-	I2c.start();
-	I2c.sendAddress(SLA_W(I2Caddr));
-	I2c.sendByte(GPIOB);
+	I2c._start();
+	I2c._sendAddress(SLA_W(I2Caddr));
+	I2c._sendByte(GPIOB);
 	// clear the lcd bits of shadowB
 	_shadowGPIOB &= B00000001;
 	if (lcdInstruction)	// set R/W high
 		_shadowGPIOB |= B01000000;
 	else // set RS, and R/W high
 		_shadowGPIOB |= B11000000;
-	I2c.sendByte(_shadowGPIOB);
+	I2c._sendByte(_shadowGPIOB);
 }
 
 /*
@@ -608,16 +611,16 @@ uint8_t RgbLcdKeyShieldI2C::_lcdRead4() {
 	uint8_t temp;
 	// set enable high
 	_shadowGPIOB |= B00100000;
-	I2c.sendByte(_shadowGPIOB);
-	I2c.stop();
+	I2c._sendByte(_shadowGPIOB);
+	I2c._stop();
 	I2c.read(I2Caddr, GPIOB, 1);
 	temp = I2c.receive();
 	// clear enable
 	_shadowGPIOB &= B11000001;
-	I2c.start();
-	I2c.sendAddress(SLA_W(I2Caddr));
-	I2c.sendByte(GPIOB);
-	I2c.sendByte(_shadowGPIOB);
+	I2c._start();
+	I2c._sendAddress(SLA_W(I2Caddr));
+	I2c._sendByte(GPIOB);
+	I2c._sendByte(_shadowGPIOB);
 	// translate pin to nibble
 	bitWrite(value, 0, bitRead(temp, 4));
 	bitWrite(value, 1, bitRead(temp, 3));
@@ -637,7 +640,7 @@ inline uint8_t RgbLcdKeyShieldI2C::_lcdRead8() {
  * Helper function to cleanup after read
  */
 inline void RgbLcdKeyShieldI2C::_cleanupRead() {
-	I2c.stop();
+	I2c._stop();
 	// set all pins back as output
 	I2c.write(I2Caddr, IODIRB, B00000000);
 }

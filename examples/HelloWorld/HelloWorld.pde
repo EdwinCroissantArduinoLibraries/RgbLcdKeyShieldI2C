@@ -3,7 +3,10 @@
 #include <RgbLcdKeyShieldI2C.h>
 
 // make an instance of RgbLcdKeyShield
-RgbLcdKeyShieldI2C lcd;
+
+// RgbLcdKeyShieldI2C lcd(true);	//inverted backlight
+RgbLcdKeyShieldI2C lcd;				// non inverted backlight
+
 
 /*
  * Strings in program memory can be displayed with the printP function

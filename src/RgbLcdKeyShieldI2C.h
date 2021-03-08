@@ -67,7 +67,7 @@ private:
 
 class RgbLcdKeyShieldI2C: public Print {
 public:
-	enum colors {
+	enum colors: uint8_t {
 		clBlack = 0,
 		clRed = 1,
 		clGreen = 2,
@@ -80,9 +80,9 @@ public:
 
 	using Print::write; // pull in write(str) and write(buf, size) from Print
 
-	RgbLcdKeyShieldI2C();
+	RgbLcdKeyShieldI2C(bool invertedBacklight = false);
 
-	void begin(void);
+	void begin();
 	void clear();
 	void home();
 	void setCursor(uint8_t col, uint8_t row);
@@ -170,6 +170,8 @@ private:
 
 	// translation table from nibble to pin
 	static const uint8_t _nibbleToPin[16];
+
+	bool _invertedBacklight;
 
 	void _lcdWrite4(uint8_t value, bool lcdInstruction);
 	inline void _lcdWrite8(uint8_t value, bool lcdInstruction);

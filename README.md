@@ -5,4 +5,6 @@ This is nearly 11 times as the fast for single characters and nearly 17 times as
 
 It can print to the lcd and load special characters into the lcd directly from program memory with the printP and createCharP command.
 
-The buttons have callback functions for short press, long press, repeating and there is a static callback for two buttons pressed at the same time. 
+The buttons have callback functions for short press, long press and repeating. There is also a static callback for two buttons pressed at the same time.
+
+Please note that the Robotdyn LCD RGB 16x2 + keypad + Buzzer Shield can have either a normal controlled backlight (white rectancular led connection on the right side of the display) or a inverted controlled backlight (white trapezium shaped led connection on the right side of the display).  
