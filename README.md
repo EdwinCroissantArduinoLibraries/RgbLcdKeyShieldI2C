@@ -8,3 +8,7 @@ It can print to the lcd and load special characters into the lcd directly from p
 The buttons have callback functions for short press, long press and repeating. There is also a static callback for two buttons pressed at the same time.
 
 Please note that the Robotdyn LCD RGB 16x2 + keypad + Buzzer Shield can have either a normal controlled backlight (white rectancular led connection on the right side of the display) or a inverted controlled backlight (white trapezium shaped led connection on the right side of the display).  
+
+| normal | inverted |
+|:---:|:---:|
+|<img src="./pictures/1602 LCD RGB.jpg" width="44" height="206" />|<img src="./pictures/1602 LCD inverted RGB.jpg" width="44" height="206" />|
