@@ -23,6 +23,7 @@
  */
 /*
  * version
+ * 0.0.3	2021/03/08 introduced inverted backlight option
  * 0.0.2	2017/07/11 introduced read and getCursor for the lcd
  * 0.0.1	2017/07/04 initial version
  */
